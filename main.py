@@ -1,3 +1,4 @@
+import string
 from typing import Optional, List
 from fastapi import FastAPI, Header, Request
 import uvicorn
@@ -104,6 +105,31 @@ def read_bank_summary_soc(request: Request):
 @app.get("/read_cells_for_histogram/{bank_idx}")
 def read_cells_for_histogram(request: Request, bank_idx: int = 0):
     return k11.read_cells_for_histogram(bank_idx)
+
+
+@app.get("/api/v1/dashboard/")
+def read_dashboard(request: Request):
+    return k11.read_dashboard()
+
+
+@app.post("/api/v1/dashboard")
+def save_dashboard(request: Request):
+    return k11.save_dashboard(request)
+
+
+@app.get("/api/v1/dashboard/{dashboard_id}")
+def read_dashboard(request: Request, dashboard_id: string):
+    return k11.read_dashboard(dashboard_id)
+
+
+@app.put("/api/v1/dashboard/{dashboard_id}")
+def update_dashboard(request: Request, dashboard_id: string):
+    return k11.update_dashboard(request, dashboard_id)
+
+
+@app.delete("/api/v1/dashboard/{dashboard_id}")
+def delete_dashboard(request: Request, dashboard_id: string):
+    return k11.delete_dashboard(request, dashboard_id)
 
 
 if __name__ == "__main__":
