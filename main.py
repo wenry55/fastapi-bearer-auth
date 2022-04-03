@@ -5,10 +5,43 @@ import uvicorn
 #from jose import JWTError, jwt
 import jwt
 import k11
+from typing import List
+
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+
+from sqlalchemy.orm import Session
+
+from dashboard import crud, models, schemas
+from dashboard.database import SessionLocal, engine
 
 CLIENT_ID = '23cd2d50b8d338ef9bd0d8a542218c7436755e47'
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+origins = [
+    "http://localhost",
+    "http://localhost:8080",
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# Dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 @app.get("/")
@@ -107,29 +140,40 @@ def read_cells_for_histogram(request: Request, bank_idx: int = 0):
     return k11.read_cells_for_histogram(bank_idx)
 
 
-@app.get("/api/v1/dashboard/")
-def read_dashboard(request: Request):
-    return k11.read_dashboard()
+@app.get("/dashboards/", response_model=List[schemas.Dashboard])
+def read_dashboards(skip: int = 0,
+                    limit: int = 100,
+                    db: Session = Depends(get_db)):
+    dashboards = crud.get_dashboards(db, skip=skip, limit=limit)
+    return dashboards
 
 
-@app.post("/api/v1/dashboard")
-def save_dashboard(request: Request):
-    return k11.save_dashboard(request)
+@app.get("/dashboards/{dashboard_id}", response_model=schemas.Dashboard)
+def read_dashboard(dashboard_id: str, db: Session = Depends(get_db)):
+    db_dashboard = crud.get_dashboard(db, dashboard_id=dashboard_id)
+    if db_dashboard is None:
+        raise HTTPException(status_code=404, detail="Dashboard not found")
+    return db_dashboard
 
 
-@app.get("/api/v1/dashboard/{dashboard_id}")
-def read_dashboard(request: Request, dashboard_id: string):
-    return k11.read_dashboard(dashboard_id)
+@app.post("/dashboards/", response_model=schemas.Dashboard)
+def create_dashboard(dashboard: schemas.DashboardCreate,
+                     db: Session = Depends(get_db)):
+    return crud.create_dashboard(db=db, dashboard=dashboard)
 
 
-@app.put("/api/v1/dashboard/{dashboard_id}")
-def update_dashboard(request: Request, dashboard_id: string):
-    return k11.update_dashboard(request, dashboard_id)
+@app.put("/dashboards/{dashboard_id}", response_model=schemas.Dashboard)
+def update_dashboard(dashboard_id: str,
+                     dashboard: schemas.DashboardUpdate,
+                     db: Session = Depends(get_db)):
+    return crud.update_dashboard(db=db,
+                                 dashboard_id=dashboard_id,
+                                 dashboard=dashboard)
 
 
-@app.delete("/api/v1/dashboard/{dashboard_id}")
-def delete_dashboard(request: Request, dashboard_id: string):
-    return k11.delete_dashboard(request, dashboard_id)
+@app.delete("/dashboards/{dashboard_id}", response_model=schemas.Dashboard)
+def delete_dashboard(dashboard_id: str, db: Session = Depends(get_db)):
+    return crud.delete_dashboard(db=db, dashboard_id=dashboard_id)
 
 
 if __name__ == "__main__":

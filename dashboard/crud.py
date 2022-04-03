@@ -63,7 +63,8 @@ def update_dashboard(db: Session, dashboard: schemas.DashboardUpdate,
     db_dashboard = get_dashboard(db, dashboard_id)
     if db_dashboard is None:
         raise HTTPException(status_code=404, detail="Dashboard not found")
-    db_dashboard.dashboard_name = dashboard.dashboard_name
+    # db_dashboard.dashboard_name = dashboard.dashboard_name
+    db_dashboard.dashboard_json = dashboard.dashboard_json
     db.commit()
     db.refresh(db_dashboard)
     return db_dashboard
