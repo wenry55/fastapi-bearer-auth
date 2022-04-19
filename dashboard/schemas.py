@@ -1,3 +1,4 @@
+
 from typing import List, Optional
 
 from pydantic import BaseModel
@@ -57,3 +58,19 @@ class Dashboard(DashboardBase):
 
     class Config:
         orm_mode = True
+
+
+class ComponentBase(BaseModel):
+    component_id: str
+    config_json: Optional[str] = None
+
+class ComponentCreate(ComponentBase):
+    pass
+
+class ComponentUpdate(ComponentBase):
+    pass
+
+class Component(ComponentBase):
+    id: int
+    class Config:
+        orm_mode = True 

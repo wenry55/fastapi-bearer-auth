@@ -176,5 +176,28 @@ def delete_dashboard(dashboard_id: str, db: Session = Depends(get_db)):
     return crud.delete_dashboard(db=db, dashboard_id=dashboard_id)
 
 
+
+@app.get("/components/{component_id}", response_model=schemas.Component)
+def read_component(component_id: str, db: Session = Depends(get_db)):
+    db_component = crud.get_component(db, component_id=component_id)
+    if db_component is None:
+        raise HTTPException(status_code=404, detail="Dashboard not found")
+    return db_component
+
+@app.post("/components/", response_model=schemas.Component)
+def create_component(component: schemas.ComponentCreate,
+                     db: Session = Depends(get_db)):
+    return crud.create_dashboard(db=db, component=component)
+
+@app.put("/components/{component_id}", response_model=schemas.Component)
+def update_component(component_id: str,
+                     component: schemas.ComponentUpdate,
+                     db: Session = Depends(get_db)):
+    return crud.update_component(db=db,
+                                 component_id=component_id,
+                                 component=component)
+
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

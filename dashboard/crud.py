@@ -77,3 +77,26 @@ def delete_dashboard(db: Session, dashboard_id: str):
     db.delete(db_dashboard)
     db.commit()
     return db_dashboard
+
+
+def get_component(db: Session, component_id: str):
+    return db.query(models.Component).filter(
+        models.Component.component_id == component_id).first()
+
+
+def create_component(db: Session, component: schemas.ComponentCreate):
+    db_component = models.Component(**component.dict())
+    db.add(db_component)
+    db.commit()
+    db.refresh(db_component)
+    return db_component
+
+def update_dashboard(db: Session, component: schemas.ComponentUpdate, component_id: str):
+    db_component = get_component(db, component_id)
+    if db_component is None:
+        raise HTTPException(status_code=404, detail="Component not found")
+
+    db_component.config_json = component.config_json
+    db.commit()
+    db.refresh(db_component)
+    return db_component

@@ -34,3 +34,10 @@ class Dashboard(Base):
     title = Column(String, index=True)
     description = Column(String)
     dashboard_json = Column(String)
+
+class Component(Base):
+    __tablename__ = "components"
+
+    id = Column(Integer, primary_key=True, index=True)
+    component_id = Column(String, unique=True, index=True)
+    config_json = Column(String)
