@@ -91,7 +91,7 @@ def create_component(db: Session, component: schemas.ComponentCreate):
     db.refresh(db_component)
     return db_component
 
-def update_dashboard(db: Session, component: schemas.ComponentUpdate, component_id: str):
+def update_component(db: Session, component: schemas.ComponentUpdate, component_id: str):
     db_component = get_component(db, component_id)
     if db_component is None:
         raise HTTPException(status_code=404, detail="Component not found")

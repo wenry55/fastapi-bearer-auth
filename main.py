@@ -187,7 +187,7 @@ def read_component(component_id: str, db: Session = Depends(get_db)):
 @app.post("/components/", response_model=schemas.Component)
 def create_component(component: schemas.ComponentCreate,
                      db: Session = Depends(get_db)):
-    return crud.create_dashboard(db=db, component=component)
+    return crud.create_component(db=db, component=component)
 
 @app.put("/components/{component_id}", response_model=schemas.Component)
 def update_component(component_id: str,
