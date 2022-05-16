@@ -19,7 +19,7 @@ def read_root():
     |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)\
     |> yield(name: "mean")'
 
-    result = client.query_api().query(query, org='codiplay')
+    result = client.query_api().query(query, org='nemo')
     results = []
     for table in result:
         for record in table.records:
@@ -67,7 +67,7 @@ def read_racks_as_csv():
 
     # |> keep(columns: ["_value", "_time", "_field"]) \
 
-    results = query_api.query_csv(query, org='codiplay')
+    results = query_api.query_csv(query, org='nemo')
 
     for line in results:  # FluxTable for each result field
         print(line)
@@ -88,7 +88,7 @@ def read_racks_as_df():
 
     # |> keep(columns: ["_value", "_time", "_field"]) \
 
-    results = query_api.query_data_frame(query, org='codiplay')
+    results = query_api.query_data_frame(query, org='nemo')
 
     for line in results:  # FluxTable for each result field
         print(line)
@@ -126,7 +126,7 @@ def read_root_as_table():
         |> aggregateWindow(every: 1m, fn: mean, createEmpty: false) \
         |> yield(name: "mean")'
 
-    results = query_api.query(query, org='codiplay')
+    results = query_api.query(query, org='nemo')
     result_list = []
     columns = []
 
@@ -156,7 +156,7 @@ def read_cell_as_table():
         |> aggregateWindow(every: 10m, fn: mean, createEmpty: false)\
         |> yield(name: "mean")'
 
-    results = query_api.query(query, org='codiplay')
+    results = query_api.query(query, org='nemo')
     result_list = []
     columns = []
     time_appended = False
@@ -195,7 +195,7 @@ def read_cell():
         |> aggregateWindow(every: 10m, fn: last, createEmpty: false)\
         |> yield(name: "last")'
 
-    results = query_api.query(query, org='codiplay')
+    results = query_api.query(query, org='nemo')
     res = []
 
     for table_idx, table in enumerate(results):
@@ -314,4 +314,28 @@ def read_cells_for_histogram(bank_idx):
             }
             res.append(item)
 
+    return {'results': res}
+
+def read_module_temp_for_histogram(bank_idx):
+    print(bank_idx)
+    query = f'from(bucket: "k11")\
+        |> range(start:-5m, stop: now()) \
+        |> filter(fn: (r) => r["_measurement"] == "module")\
+        |> filter(fn: (r) => r["_field"] == "temperature1" or r["_field"] == "temperature2" or r["_field"] == "temperature3" or r["_field"] == "temperature4")\
+        |> filter(fn: (r) => r["bank_idx"] == "{bank_idx}")\
+        |> last()'
+
+    results = query_api.query(query)
+    print(results)
+    res = []
+    for table_idx, table in enumerate(results):
+        for record_idx, record in enumerate(table.records):
+            item = {
+                "bank_idx": record.values["bank_idx"],
+                "rack_idx": record.values["rack_idx"],
+                "modu_idx": record.values["modu_idx"],
+                "val": record.values["_value"],
+            }
+            res.append(item)
+        print(item)
     return {'results': res}
