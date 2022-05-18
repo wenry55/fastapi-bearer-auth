@@ -139,6 +139,10 @@ def read_bank_summary_soc(request: Request):
 def read_cells_for_histogram(request: Request, bank_idx: int = 0):
     return k11.read_cells_for_histogram(bank_idx)
 
+@app.get("/read_module_temp_for_histogram/{bank_idx}")
+def read_module_temp_for_histogram(request: Request, bank_idx: int = 0):
+    return k11.read_module_temp_for_histogram(bank_idx)
+
 
 @app.get("/dashboards/", response_model=List[schemas.Dashboard])
 def read_dashboards(skip: int = 0,
