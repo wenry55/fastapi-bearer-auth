@@ -458,3 +458,53 @@ def read_cell_status(bank_idx, rack_idx, val_type):
         # print(columns)
         # print(result_record)
     return {'results': {'columns': columns, 'data': result_list}}
+
+def read_rack_trend(bank_idx, rack_idx, val_type):
+
+    query = f'from(bucket: "k11")\
+        |> range(start:-24h, stop: now()) \
+        |> filter(fn: (r) => r["_measurement"] == "rack")\
+        |> filter(fn: (r) => r["_field"] == "{val_type}") \
+        |> filter(fn: (r) => r["bank_idx"] == "{bank_idx}")\
+        |> filter(fn: (r) => r["rack_idx"] == "{rack_idx}")\
+        |> aggregateWindow(every: 10m, fn: last, createEmpty: false)\
+        |> yield(name: "mean")'
+
+    results = query_api.query(query)
+    res = []
+    for table_idx, table in enumerate(results):
+        for record_idx, record in enumerate(table.records):
+            # print(record)
+            item = {
+                "_time" : record.values["_time"],
+                "unit" : record.values["_measurement"],
+                "bank_idx" : record.values["bank_idx"],
+                "rack_idx" : record.values["rack_idx"], 
+                "type" : record.values["_field"],
+                "value" : record.values["_value"],
+            }
+            print(item)
+            res.append(item)
+        
+    return {'results': res}
+    # for table_idx, table in enumerate(results):
+
+    #     if not time_column_appended:
+    #         columns.append('_time')
+    #         time_column_appended = True
+    #     columns.append('value')
+    #     for record_idx, record in enumerate(table.records):
+
+    #         if len(result_list) < record_idx + 1:
+    #             result_list.append([])
+
+    #         result_record = result_list[record_idx]
+
+    #         if not time_appended:
+    #             result_record.append(record.values["_time"])
+
+    #         result_record.append(record.get_value())
+
+    #     time_appended = True
+    
+    # return {'results': {'columns': columns, 'data': result_list}}
