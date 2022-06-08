@@ -302,6 +302,7 @@ def read_cells_for_histogram(bank_idx):
         |> last()'
 
     results = query_api.query(query)
+    print(results)
     res = []
     for table_idx, table in enumerate(results):
         for record_idx, record in enumerate(table.records):
@@ -459,11 +460,11 @@ def read_cell_status(bank_idx, rack_idx, val_type):
         # print(result_record)
     return {'results': {'columns': columns, 'data': result_list}}
 
-def read_rack_trend(bank_idx, rack_idx, val_type):
+def read_rack_trend(bank_idx, rack_idx, unit, val_type, from_date, to_date):
 
     query = f'from(bucket: "k11")\
         |> range(start:-24h, stop: now()) \
-        |> filter(fn: (r) => r["_measurement"] == "rack")\
+        |> filter(fn: (r) => r["_measurement"] == "{unit}")\
         |> filter(fn: (r) => r["_field"] == "{val_type}") \
         |> filter(fn: (r) => r["bank_idx"] == "{bank_idx}")\
         |> filter(fn: (r) => r["rack_idx"] == "{rack_idx}")\
