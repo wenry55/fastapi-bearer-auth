@@ -461,9 +461,14 @@ def read_cell_status(bank_idx, rack_idx, val_type):
     return {'results': {'columns': columns, 'data': result_list}}
 
 def read_rack_trend(bank_idx, rack_idx, unit, val_type, from_date, to_date):
-
+    start_date = datetime.strftime(from_date,
+                                         '%Y-%m-%dT%H:%M:%SZ')
+    end_date = datetime.strftime(to_date,
+                                         '%Y-%m-%dT%H:%M:%SZ')
+    # print(start_date)
+    # print(type(start_date))
     query = f'from(bucket: "k11")\
-        |> range(start:-24h, stop: now()) \
+        |> range(start:time(v:"{start_date}"), stop: time(v:"{end_date}")) \
         |> filter(fn: (r) => r["_measurement"] == "{unit}")\
         |> filter(fn: (r) => r["_field"] == "{val_type}") \
         |> filter(fn: (r) => r["bank_idx"] == "{bank_idx}")\
