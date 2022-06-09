@@ -460,20 +460,21 @@ def read_cell_status(bank_idx, rack_idx, val_type):
         # print(result_record)
     return {'results': {'columns': columns, 'data': result_list}}
 
-def read_rack_trend(bank_idx, rack_idx, unit, val_type, from_date, to_date):
+def read_rack_trend(bank_idx, rack_idx, unit, val_type, from_date, to_date, time_stamp):
     start_date = datetime.strftime(from_date,
                                          '%Y-%m-%dT%H:%M:%SZ')
     end_date = datetime.strftime(to_date,
                                          '%Y-%m-%dT%H:%M:%SZ')
     # print(start_date)
     # print(type(start_date))
+    print(time_stamp)
     query = f'from(bucket: "k11")\
         |> range(start:time(v:"{start_date}"), stop: time(v:"{end_date}")) \
         |> filter(fn: (r) => r["_measurement"] == "{unit}")\
         |> filter(fn: (r) => r["_field"] == "{val_type}") \
         |> filter(fn: (r) => r["bank_idx"] == "{bank_idx}")\
         |> filter(fn: (r) => r["rack_idx"] == "{rack_idx}")\
-        |> aggregateWindow(every: 10m, fn: last, createEmpty: false)\
+        |> aggregateWindow(every: {time_stamp}, fn: last, createEmpty: false)\
         |> yield(name: "mean")'
 
     results = query_api.query(query)

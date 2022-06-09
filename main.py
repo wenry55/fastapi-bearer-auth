@@ -156,9 +156,9 @@ def read_module_status(request: Request, bank_idx: int, rack_idx: int):
 def read_cell_status(request: Request, bank_idx: int, rack_idx: int, val_type: str):
     return k11.read_cell_status(bank_idx, rack_idx, val_type)
 
-@app.get("/read_rack_trend/{bank_idx}/{rack_idx}/{unit}/{val_type}/{from_date}/{to_date}")
-def read_rack_trend(request: Request, bank_idx: int, rack_idx: int, val_type: str, unit: str, from_date: datetime, to_date: datetime):
-    return k11.read_rack_trend(bank_idx, rack_idx, unit, val_type, from_date, to_date)
+@app.get("/read_rack_trend/{bank_idx}/{rack_idx}/{unit}/{val_type}/{from_date}/{to_date}/{time_stamp}")
+def read_rack_trend(request: Request, bank_idx: int, rack_idx: int, val_type: str, unit: str, from_date: datetime, to_date: datetime, time_stamp: str):
+    return k11.read_rack_trend(bank_idx, rack_idx, unit, val_type, from_date, to_date, time_stamp)
 
 @app.get("/dashboards/", response_model=List[schemas.Dashboard])
 def read_dashboards(skip: int = 0,
