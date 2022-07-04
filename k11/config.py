@@ -7,3 +7,4 @@ bucket = 'k11'
 org = 'nemo'
 token = 'rFtCHaUVxYickksosOGXYCMNBjjUz1qwGt9Kwk85O-C5MdsCg7Xr64feLKLidkuzBW50gS-Oi3FcRz_o4eiU_w=='
 dburl = "https://cdms-influxdb.sk-nemo.com"
+# dburl = "influxdb.influxdb.svc.cluster.local:8086"
