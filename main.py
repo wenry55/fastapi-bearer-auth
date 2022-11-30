@@ -1,3 +1,4 @@
+from datetime import datetime
 import string
 from typing import Optional, List
 from fastapi import FastAPI, Header, Request
@@ -143,6 +144,21 @@ def read_cells_for_histogram(request: Request, bank_idx: int = 0):
 def read_module_temp_for_histogram(request: Request, bank_idx: int = 0):
     return k11.read_module_temp_for_histogram(bank_idx)
 
+@app.get("/read_rack_status/{bank_idx}/{rack_idx}")
+def read_rack_status(request: Request, bank_idx: int, rack_idx: int):
+    return k11.read_rack_status(bank_idx, rack_idx)
+
+@app.get("/read_module_status/{bank_idx}/{rack_idx}")
+def read_module_status(request: Request, bank_idx: int, rack_idx: int):
+    return k11.read_module_status(bank_idx, rack_idx)
+
+@app.get("/read_cell_status/{bank_idx}/{rack_idx}/{val_type}")
+def read_cell_status(request: Request, bank_idx: int, rack_idx: int, val_type: str):
+    return k11.read_cell_status(bank_idx, rack_idx, val_type)
+
+@app.get("/read_rack_trend/{bank_idx}/{rack_idx}/{unit}/{val_type}/{from_date}/{to_date}/{time_stamp}")
+def read_rack_trend(request: Request, bank_idx: int, rack_idx: int, val_type: str, unit: str, from_date: datetime, to_date: datetime, time_stamp: str):
+    return k11.read_rack_trend(bank_idx, rack_idx, unit, val_type, from_date, to_date, time_stamp)
 
 @app.get("/dashboards/", response_model=List[schemas.Dashboard])
 def read_dashboards(skip: int = 0,

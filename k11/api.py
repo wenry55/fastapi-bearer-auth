@@ -302,6 +302,7 @@ def read_cells_for_histogram(bank_idx):
         |> last()'
 
     results = query_api.query(query)
+    print(results)
     res = []
     for table_idx, table in enumerate(results):
         for record_idx, record in enumerate(table.records):
@@ -339,3 +340,178 @@ def read_module_temp_for_histogram(bank_idx):
             res.append(item)
         print(item)
     return {'results': res}
+
+def read_rack_status(bank_idx, rack_idx):
+
+    query = f'from(bucket: "k11")\
+        |> range(start:-5m, stop: now()) \
+        |> filter(fn: (r) => r["_measurement"] == "rack")\
+        |> filter(fn: (r) => r["bank_idx"] == "{bank_idx}")\
+        |> filter(fn: (r) => r["rack_idx"] == "{rack_idx}")\
+        |> aggregateWindow(every: 10m, fn: last, createEmpty: false)\
+        |> last()'
+
+    results = query_api.query(query, org='nemo')
+    result_list = []
+    columns = []
+    time_appended = False
+    time_column_appended = False
+    for table_idx, table in enumerate(results):
+
+        if not time_column_appended:
+            columns.append('_time')
+            time_column_appended = True
+        columns.append(table.records[0].get_field())
+        for record_idx, record in enumerate(table.records):
+
+            if len(result_list) < record_idx + 1:
+                result_list.append([])
+
+            result_record = result_list[record_idx]
+
+            if not time_appended:
+                result_record.append(record.values["_time"])
+
+            result_record.append(record.get_value())
+
+        time_appended = True
+    
+    return {'results': {'columns': columns, 'data': result_list}}
+
+
+def read_module_status(bank_idx, rack_idx):
+
+    query = f'from(bucket: "k11")\
+        |> range(start:-5m, stop: now()) \
+        |> filter(fn: (r) => r["_measurement"] == "module") \
+        |> filter(fn: (r) => r["_field"] == "assembled" or r["_field"] == "created" or r["_field"] == "module_bal1" or r["_field"] == "module_bal2" or r["_field"] == "module_pcbt1" or r["_field"] == "module_pcbt2" or r["_field"] == "module_vol1" or r["_field"] == "module_vol2" or r["_field"] == "module_vol3" or r["_field"] == "module_vol4" or r["_field"] == "temperature1" or r["_field"] == "temperature2" or r["_field"] == "temperature3" or r["_field"] == "temperature5" or r["_field"] == "temperature4" or r["_field"] == "temperature6")\
+        |> filter(fn: (r) => r["bank_idx"] == "{bank_idx}") \
+        |> filter(fn: (r) => r["modu_idx"] == "0" or r["modu_idx"] == "1" or r["modu_idx"] == "2" or r["modu_idx"] == "3" or r["modu_idx"] == "4" or r["modu_idx"] == "5") \
+        |> filter(fn: (r) => r["rack_idx"] == "{rack_idx}") \
+        |> aggregateWindow(every: 10m, fn: last, createEmpty: false)\
+        |> last()'
+
+    results = query_api.query(query, org='nemo')
+    result_list = []
+    columns = []
+    time_appended = False
+    time_column_appended = False
+    for table_idx, table in enumerate(results):
+        if not time_column_appended:
+            columns.append('_time')
+            time_column_appended = True
+        
+        columns.append(table.records[0].get_field())
+        for record_idx, record in enumerate(table.records):
+
+            if len(result_list) < record_idx + 1:
+                result_list.append([])
+
+            result_record = result_list[record_idx]
+
+            if not time_appended:
+                result_record.append(record.values["_time"])
+
+            result_record.append(record.get_value())
+
+        time_appended = True
+    return {'results': {'columns': columns, 'data': result_list}}
+
+
+def read_cell_status(bank_idx, rack_idx, val_type):
+    # print("cell!!")
+    # print(val_type)
+    query = f'from(bucket: "k11")\
+        |> range(start:-5m, stop: now()) \
+        |> filter(fn: (r) => r["_measurement"] == "cell") \
+        |> filter(fn: (r) => r["_field"] == "{val_type}") \
+        |> filter(fn: (r) => r["bank_idx"] == "{bank_idx}") \
+        |> filter(fn: (r) => r["rack_idx"] == "{rack_idx}") \
+        |> aggregateWindow(every: 10m, fn: last, createEmpty: false)\
+        |> last()'
+
+    results = query_api.query(query, org='nemo')
+    result_list = []
+    columns = []
+    time_appended = False
+    time_column_appended = False
+    for table_idx, table in enumerate(results):
+        # print(table)
+        if not time_column_appended:
+            columns.append('_time')
+            time_column_appended = True
+        
+        columns.append(table.records[0].get_field())
+        # print(columns)
+        for record_idx, record in enumerate(table.records):
+
+            if len(result_list) < record_idx + 1:
+                result_list.append([])
+
+            result_record = result_list[record_idx]
+
+            if not time_appended:
+                result_record.append(record.values["_time"])
+
+            result_record.append(record.get_value())
+
+        time_appended = True
+        # print(columns)
+        # print(result_record)
+    return {'results': {'columns': columns, 'data': result_list}}
+
+def read_rack_trend(bank_idx, rack_idx, unit, val_type, from_date, to_date, time_stamp):
+    start_date = datetime.strftime(from_date,
+                                         '%Y-%m-%dT%H:%M:%SZ')
+    end_date = datetime.strftime(to_date,
+                                         '%Y-%m-%dT%H:%M:%SZ')
+    # print(start_date)
+    # print(type(start_date))
+    print(time_stamp)
+    query = f'from(bucket: "k11")\
+        |> range(start:time(v:"{start_date}"), stop: time(v:"{end_date}")) \
+        |> filter(fn: (r) => r["_measurement"] == "{unit}")\
+        |> filter(fn: (r) => r["_field"] == "{val_type}") \
+        |> filter(fn: (r) => r["bank_idx"] == "{bank_idx}")\
+        |> filter(fn: (r) => r["rack_idx"] == "{rack_idx}")\
+        |> aggregateWindow(every: {time_stamp}, fn: last, createEmpty: false)\
+        |> yield(name: "mean")'
+
+    results = query_api.query(query)
+    res = []
+    for table_idx, table in enumerate(results):
+        for record_idx, record in enumerate(table.records):
+            # print(record)
+            item = {
+                "_time" : record.values["_time"],
+                "unit" : record.values["_measurement"],
+                "bank_idx" : record.values["bank_idx"],
+                "rack_idx" : record.values["rack_idx"], 
+                "type" : record.values["_field"],
+                "value" : record.values["_value"],
+            }
+            print(item)
+            res.append(item)
+        
+    return {'results': res}
+    # for table_idx, table in enumerate(results):
+
+    #     if not time_column_appended:
+    #         columns.append('_time')
+    #         time_column_appended = True
+    #     columns.append('value')
+    #     for record_idx, record in enumerate(table.records):
+
+    #         if len(result_list) < record_idx + 1:
+    #             result_list.append([])
+
+    #         result_record = result_list[record_idx]
+
+    #         if not time_appended:
+    #             result_record.append(record.values["_time"])
+
+    #         result_record.append(record.get_value())
+
+    #     time_appended = True
+    
+    # return {'results': {'columns': columns, 'data': result_list}}
