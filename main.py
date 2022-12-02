@@ -6,11 +6,13 @@ import uvicorn
 #from jose import JWTError, jwt
 import jwt
 import k11
+import os
+import json
 from typing import List
-
+from fastapi.responses import FileResponse
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-
+from fastapi import FastAPI, File, UploadFile
 from sqlalchemy.orm import Session
 
 from dashboard import crud, models, schemas
@@ -50,6 +52,33 @@ def read_root():
     return {"Hello": "World"}
 
 
+
+@app.get("/get_image/{img_id}")
+async def get_image(img_id: str):
+    return FileResponse("/Users/hongjonghyup/Downloads/watchtest/"+ img_id +".jpg")
+
+@app.get("/get_result_json/{json_id}")
+async def get_result_json(json_id: str):
+    return FileResponse("/Users/hongjonghyup/Downloads/watchtest/Carriage"+ json_id +".json")
+
+@app.post("/save_switch_json/{cam_id}/{carriage_state}/{rack_state}")
+async def save_switch_json(cam_id: int, carriage_state: str, rack_state: str):
+    UPLOAD_DIR = "/Users/hongjonghyup/Downloads/watchtest"  # 이미지를 저장할 서버 경로
+    
+    # data = {"hi":"world"}
+    json_string = '{"Camera":1,"detect_carriage":"ON","detect_rack":""}'
+    json_data = json.loads(json_string)
+    json_data["Camera"] = cam_id
+    json_data["detect_carriage"] = carriage_state
+    json_data["detect_rack"] = rack_state
+    
+    
+    filename = "1.json"  # uuid로 유니크한 파일명으로 변경
+    with open(os.path.join(UPLOAD_DIR, filename), "w") as fp:
+        fp.write(json.dumps(json_data))  # 서버 로컬 스토리지에 이미지 저장 (쓰기)
+
+    return {"filename": filename}
+
 @app.get("/test")
 def test(request: Request):
 
@@ -61,7 +90,7 @@ def test(request: Request):
         return {"error": "no token"}
 
     authd = jwt.decode(payload,
-                       algorithms=['HS256'],
+                    algorithms=['HS256'],
                        options={
                            "verify_signature": False,
                            "verify_aud": False
