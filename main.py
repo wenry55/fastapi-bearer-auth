@@ -55,15 +55,15 @@ def read_root():
 
 @app.get("/get_image/{img_id}")
 async def get_image(img_id: str):
-    return FileResponse("/image/camera00"+ img_id +".jpg")
+    return FileResponse("/image/camera00"+ img_id + "/camera00" + img_id + ".jpg")
 
 @app.get("/get_result_json/{json_id}")
 async def get_result_json(json_id: str):
-    return FileResponse("/image/detect_result"+ json_id +".json")
+    return FileResponse("/image/camera00" + json_id + "/detect_result"+ json_id +".json")
 
 @app.post("/save_switch_json/{cam_id}/{carriage_state}/{rack_state}")
 async def save_switch_json(cam_id: int, carriage_state: str, rack_state: str):
-    UPLOAD_DIR = "/image"  # 이미지를 저장할 서버 경로
+    UPLOAD_DIR = "/image/camera00" + str(cam_id)  # 이미지를 저장할 서버 경로
     
     # data = {"hi":"world"}
     json_string = '{"Camera":1,"detect_carriage":"ON","detect_rack":""}'
